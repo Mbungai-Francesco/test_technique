@@ -60,6 +60,31 @@ export class ApplicationService {
     return this.serializeApplication(application);
   }
 
+  async downloadFile(id: string) {
+    const application = await this.prisma.application.findUnique({
+      where: { id },
+      select: {
+        filename: true,
+        fileData: true,
+        mimeType: true,
+      },
+    });
+
+    if (!application) {
+      throw new NotFoundException(`App with ID ${id} not found`);
+    }
+
+    if (!application.fileData) {
+      throw new NotFoundException(`File data not found for app with ID ${id}`);
+    }
+
+    return {
+      filename: application.filename,
+      mimeType: application.mimeType || 'application/octet-stream',
+      buffer: Buffer.from(application.fileData),
+    };
+  }
+
   async update(id: string, updateApplicationDto: UpdateApplicationDto) {
     await this.findOne(id); // Check if application exists
 
