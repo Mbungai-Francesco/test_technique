@@ -18,6 +18,11 @@ enum AppState {
   SCANED
 }
 
+enum VirusCheckStatus {
+  SAFE       // Application sûre
+  VIRUS    // Virus détecté
+}
+
 model User {
   id        String      @id @default(uuid()) @db.Uuid
   email     String      @unique
@@ -60,10 +65,36 @@ model Application {
   updatedAt   DateTime @updatedAt @map("updated_at")
   
   // Relations
-  // virusTotalChecks VirusTotalCheck[]
+  virusTotalChecks VirusTotalCheck[]
   
   @@index([hash])
   @@index([virusCheckStatus])
   @@index([uploadDate])
   @@map("applications")
+}
+
+// Historique des vérifications VirusTotal (pour traçabilité)
+model VirusTotalCheck {
+  id            String   @id @default(uuid()) @db.Uuid
+  
+  applicationId String   @map("application_id") @db.Uuid
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  // Détails de la vérification
+  status        VirusCheckStatus
+  responseDate   DateTime  @default(now()) @map("response_date")
+  // requestDate  DateTime? @map("request_date")
+
+  // Statistiques
+  positives     Int?
+  total         Int?
+
+  scan_date  DateTime? @map("scan_date")
+  permalink  String?   @db.VarChar(500) // Lien vers le rapport VirusTotal
+
+  scans    Json?     @map("scans") // Détails des scans par antivirus
+
+  @@index([applicationId])
+  @@index([responseDate])
+  @@map("virus_total_checks")
 }
