@@ -32,3 +32,13 @@ export interface VirusTotalCheckDto {
 
     scans : Record<string, Scan>;
 }
+
+export interface VirusTotalCheckUpdateDto {
+    status?: VirusCheckStatus;
+
+    positives ?: number;
+    total ?: number;
+    permalink ?: string;
+
+    scans ?: Record<string, Scan>;
+}
