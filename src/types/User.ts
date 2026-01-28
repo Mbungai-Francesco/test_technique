@@ -1,13 +1,15 @@
 export interface User {
     id: string;
-    name: string;
+    firstName ?: string;
+    lastName: string;
     email: string;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt ?: Date;
+    updatedAt ?: Date;
 }
 
 export interface UserUpdateDto{
-    name?: string;
+    firstName ?: string;
+    lastName?: string;
     email?: string;
     password?: string;
 }
