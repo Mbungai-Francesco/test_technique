@@ -14,13 +14,14 @@ datasource db {
 }
 
 enum AppState {
-  PENDING
-  SCANED
+  QUEUED     // Dans la file d'attente
+  SCANNED    // Scan terminé
+  FAILED     // Échec du scan
 }
 
 enum VirusCheckStatus {
   SAFE       // Application sûre
-  VIRUS    // Virus détecté
+  VIRUS      // Virus détecté
 }
 
 model User {
@@ -54,9 +55,11 @@ model Application {
   comment   String?  @db.Text
   
   // Statut de vérification antivirale
-  virusCheckStatus AppState @default(PENDING) @map("virus_check_status")
+  virusCheckStatus AppState @default(QUEUED) @map("virus_check_status")
+  scanResult       VirusCheckStatus? @map("scan_result") // Résultat final du scan
 
   permalink  String?   @db.VarChar(500) // Lien vers le rapport VirusTotal
+  scanError  String?   @map("scan_error") @db.Text // Message d'erreur si échec
   
   
   // Timestamps

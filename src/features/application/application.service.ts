@@ -2,10 +2,14 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { PrismaService } from 'src/prisma';
+import { VirusScanService } from '../virus-scan/virus-scan.service';
 
 @Injectable()
 export class ApplicationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private virusScanService: VirusScanService,
+  ) {}
 
   // Helper to serialize BigInt to string for JSON response
   private serializeApplication(app: any) {
@@ -33,19 +37,32 @@ export class ApplicationService {
       },
     });
 
+    const virusScanDto = {
+      applicationId: application.id,
+      hash: createApplicationDto.hash,
+      file: createApplicationDto.fileData,
+      fileName: createApplicationDto.filename,
+    };
+
+    // Request virus scan
+    if (application) {
+      await this.virusScanService.requestScan(virusScanDto);
+      await this.virusScanService.handleCheckReport(application.id);
+    }
+
     return this.serializeApplication(application);
   }
 
   async findAll() {
     const applications = await this.prisma.application.findMany();
-    return applications.map(app => this.serializeApplication(app));
+    return applications.map((app) => this.serializeApplication(app));
   }
-  
+
   async findAllUser(userId: string) {
     const applications = await this.prisma.application.findMany({
       where: { userId: userId },
     });
-    return applications.map(app => this.serializeApplication(app));
+    return applications.map((app) => this.serializeApplication(app));
   }
 
   async findOne(id: string) {
@@ -113,5 +130,12 @@ export class ApplicationService {
     });
 
     return { message: `App with name ${filename} deleted successfully` };
+  }
+
+  async removeAllByUser(userId: string) {
+    const result = await this.prisma.application.deleteMany({
+      where: { userId },
+    });
+    return { message: `${result.count} applications deleted for user ${userId}` };
   }
 }

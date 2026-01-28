@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsDate, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { AppState, VirusCheckStatus } from "generated/prisma/enums";
 
 export class CreateApplicationDto {
     @IsString()
@@ -35,5 +36,20 @@ export class CreateApplicationDto {
     @IsOptional()
     comment?: string;
     
+    @IsOptional()
+    virusCheckStatus? : AppState
+    
+    @IsOptional()
+    scanResult?: VirusCheckStatus;
+    
+    @IsString()
+    @IsOptional()
+    permaLink?: string;
+
+
+    @IsDate()
+    @IsOptional()
+    lastChecked?: Date;
+
 
 }

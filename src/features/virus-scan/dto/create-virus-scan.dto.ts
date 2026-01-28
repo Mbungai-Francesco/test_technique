@@ -1,5 +1,4 @@
-import { IsOptional, IsString } from "class-validator";
-import { IsNotEmpty } from "class-validator/types/decorator/common/IsNotEmpty";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreateVirusScanDto {
     @IsString()
@@ -9,6 +8,10 @@ export class CreateVirusScanDto {
     @IsString()
     @IsNotEmpty()
     hash: string;
+    
+    @IsString()
+    @IsNotEmpty()
+    fileName: string;
 
     @IsOptional()
     file: Buffer;

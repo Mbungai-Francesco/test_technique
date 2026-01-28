@@ -52,4 +52,9 @@ export class ApplicationController {
   remove(@Param('id') id: string) {
     return this.applicationService.remove(id);
   }
+
+  @Delete('user/:userId')
+  removeAllByUser(@Param('userId') userId: string) {
+    return this.applicationService.removeAllByUser(userId);
+  }
 }
