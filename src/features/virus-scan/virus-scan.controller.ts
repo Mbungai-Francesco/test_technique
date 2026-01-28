@@ -25,6 +25,11 @@ export class VirusScanController {
     return this.virusScanService.requestScan(createVirusScanDto);
   }
 
+  @Post('check-report/:applicationId')
+  handleCheckReport(@Param('applicationId') applicationId: string) {
+    return this.virusScanService.handleCheckReport(applicationId);
+  }
+
   /**
    * Get scan status for a single application
    */

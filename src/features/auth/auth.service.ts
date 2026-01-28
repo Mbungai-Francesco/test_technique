@@ -29,11 +29,11 @@ export class AuthService {
       },
     });
 
-    const tokens = await this.generateTokens(user.id, user.email);
+    const token = await this.generateTokens(user.id, user.email);
 
     return {
       user: this.excludePassword(user),
-      ...tokens,
+      ...token,
     };
   }
 
@@ -52,11 +52,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const tokens = await this.generateTokens(user.id, user.email);
+    const token = await this.generateTokens(user.id, user.email);
 
     return {
       user: this.excludePassword(user),
-      ...tokens,
+      ...token,
     };
   }
 

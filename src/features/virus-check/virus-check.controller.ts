@@ -38,6 +38,11 @@ export class VirusCheckController {
     return this.virusCheckService.findByApplication(applicationId);
   }
 
+  @Get('permalink/:permalink')
+  findByPermalink(@Param('permalink') permalink: string) {
+    return this.virusCheckService.findByPermalink(permalink);
+  }
+
   @Get('application/:applicationId/latest')
   findLatestByApplication(@Param('applicationId') applicationId: string) {
     return this.virusCheckService.findLatestByApplication(applicationId);

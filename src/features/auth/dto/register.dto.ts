@@ -6,8 +6,12 @@ export class RegisterDto {
   email: string;
 
   @IsString()
+  @IsNotEmpty()
+  lastName: string;
+  
+  @IsString()
   @IsOptional()
-  name?: string;
+  firstName?: string;
 
   @IsString()
   @IsNotEmpty()

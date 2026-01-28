@@ -1,11 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { PrismaService } from 'src/prisma';
 import { VirusScanService } from '../virus-scan/virus-scan.service';
+import * as ApkReader from 'adbkit-apkreader';
 
 @Injectable()
 export class ApplicationService {
+  private readonly logger = new Logger(ApplicationService.name);
+  
   constructor(
     private prisma: PrismaService,
     private virusScanService: VirusScanService,
@@ -17,14 +20,42 @@ export class ApplicationService {
     return {
       ...app,
       fileSize: app.fileSize?.toString(),
-      fileData: app.fileData ? Buffer.from(app.fileData).toString('base64') : null,
+      icon: app.icon ? Buffer.from(app.icon).toString('base64') : null,
     };
+  }
+
+  async extractIcon(fileBuffer: Buffer): Promise<Buffer | null> {
+    try {
+      const reader = await ApkReader.open(fileBuffer);
+      const manifest = await reader.readManifest();
+      
+      // 1. Find the icon path from the manifest
+      // Android stores this in 'application.icon'
+      const iconPath = manifest.application.icon;
+
+      if (!iconPath) return null;
+
+      // 2. Extract the actual image file from the APK
+      const iconStream = await reader.readFile(iconPath);
+      
+      // 3. Convert stream to Buffer for Prisma
+      return new Promise((resolve, reject) => {
+        const chunks: any[] = [];
+        iconStream.on('data', (chunk) => chunks.push(chunk));
+        iconStream.on('end', () => resolve(Buffer.concat(chunks)));
+        iconStream.on('error', reject);
+      });
+    } catch (error) {
+      this.logger.error('Failed to extract APK icon', error);
+      return null;
+    }
   }
 
   async create(createApplicationDto: CreateApplicationDto) {
     const existingApp = await this.prisma.application.findUnique({
       where: { filename: createApplicationDto.filename },
     });
+    const iconBuffer = await this.extractIcon(createApplicationDto.fileData);
 
     if (existingApp) {
       throw new Error('Application with this filename already exists');
@@ -34,8 +65,11 @@ export class ApplicationService {
       data: {
         ...createApplicationDto,
         fileData: new Uint8Array(createApplicationDto.fileData),
+        icon: iconBuffer ? new Uint8Array(iconBuffer) : undefined,
       },
     });
+
+    const { fileData, ...applicationWithoutFileData } = application;
 
     const virusScanDto = {
       applicationId: application.id,
@@ -50,19 +84,22 @@ export class ApplicationService {
       await this.virusScanService.handleCheckReport(application.id);
     }
 
-    return this.serializeApplication(application);
+    return this.serializeApplication(applicationWithoutFileData);
   }
 
   async findAll() {
     const applications = await this.prisma.application.findMany();
-    return applications.map((app) => this.serializeApplication(app));
+    // Exclude fileData before returning
+    const applicationsWithoutFileData = applications.map(({ fileData, ...rest }) => rest);
+    return applicationsWithoutFileData.map((app) => this.serializeApplication(app));
   }
 
   async findAllUser(userId: string) {
     const applications = await this.prisma.application.findMany({
       where: { userId: userId },
     });
-    return applications.map((app) => this.serializeApplication(app));
+    const applicationsWithoutFileData = applications.map(({ fileData, ...rest }) => rest);
+    return applicationsWithoutFileData.map((app) => this.serializeApplication(app));
   }
 
   async findOne(id: string) {
@@ -74,7 +111,9 @@ export class ApplicationService {
       throw new NotFoundException(`App with ID ${id} not found`);
     }
 
-    return this.serializeApplication(application);
+    const applicationWithoutFileData = (({ fileData, ...rest }) => rest)(application);
+
+    return this.serializeApplication(applicationWithoutFileData);
   }
 
   async downloadFile(id: string) {
@@ -105,15 +144,15 @@ export class ApplicationService {
   async update(id: string, updateApplicationDto: UpdateApplicationDto) {
     await this.findOne(id); // Check if application exists
 
-    const { userId, fileData, ...updateData } = updateApplicationDto;
-    // You should ne able to change the userId associated with the application
+    const { userId, fileData, icon, ...updateData } = updateApplicationDto;
+    // You should not be able to change the userId associated with the application
     // Also handle fileData separately to convert it to Uint8Array
 
     const application = await this.prisma.application.update({
       where: { id },
       data: {
         ...updateData,
-        ...(fileData && { fileData: new Uint8Array(fileData) }),
+        ...(icon && { icon: new Uint8Array(icon) }),
       },
     });
 

@@ -110,6 +110,7 @@ export class VirusScanService {
         scanResult: report.scanResult,
       });
 
+
       await this.virusTotalCheck.create({
         applicationId: applicationId,
         status: report.scanResult,

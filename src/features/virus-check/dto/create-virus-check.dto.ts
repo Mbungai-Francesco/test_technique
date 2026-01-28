@@ -22,9 +22,9 @@ export class CreateVirusCheckDto {
   @IsDate()
   scan_date?: Date;
 
-  @IsOptional()
   @IsString()
-  permalink?: string;
+  @IsNotEmpty()
+  permalink: string;
 
   @IsOptional()
   scans?: Record<string, any>;

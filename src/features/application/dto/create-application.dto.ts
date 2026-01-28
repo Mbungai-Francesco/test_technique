@@ -20,6 +20,9 @@ export class CreateApplicationDto {
 
     @IsNotEmpty()
     fileData: Buffer;
+    
+    @IsOptional()
+    icon?: Buffer;
 
     @IsNotEmpty()
     fileSize: bigint;

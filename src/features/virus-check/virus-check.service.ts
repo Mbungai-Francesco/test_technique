@@ -9,12 +9,20 @@ export class VirusCheckService {
 
   async create(createVirusCheckDto: CreateVirusCheckDto) {
     // Verify application exists
-    const application = await this.prisma.application.findUnique({
+    const scan = await this.prisma.virusTotalCheck.findUnique({
+      where: { permalink: createVirusCheckDto.permalink },
+    });
+    
+    const app = await this.prisma.application.findUnique({
       where: { id: createVirusCheckDto.applicationId },
     });
 
-    if (!application) {
-      throw new NotFoundException(`Application with ID ${createVirusCheckDto.applicationId} not found`);
+    if (!app) {
+      throw new NotFoundException(`application with ID ${createVirusCheckDto.applicationId} not found`);
+    }
+    
+    if (scan) {
+      throw new NotFoundException(`scan with permalink ${createVirusCheckDto.permalink} already exists`);
     }
 
     const virusCheck = await this.prisma.virusTotalCheck.create({
@@ -74,6 +82,27 @@ export class VirusCheckService {
 
     if (!virusCheck) {
       throw new NotFoundException(`VirusCheck with ID ${id} not found`);
+    }
+
+    return this.serializeVirusCheck(virusCheck);
+  }
+
+  async findByPermalink(permalink: string) {
+    const virusCheck = await this.prisma.virusTotalCheck.findUnique({
+      where: { permalink },
+      include: {
+        application: {
+          select: {
+            id: true,
+            filename: true,
+            hash: true,
+          },
+        },
+      },
+    });
+
+    if (!virusCheck) {
+      throw new NotFoundException(`VirusCheck with permalink ${permalink} not found`);
     }
 
     return this.serializeVirusCheck(virusCheck);

@@ -27,7 +27,8 @@ enum VirusCheckStatus {
 model User {
   id        String      @id @default(uuid()) @db.Uuid
   email     String      @unique
-  name      String?
+  firstName      String?
+  lastName      String
   password  String
   createdAt DateTime    @default(now()) @map("created_at")
   updatedAt DateTime    @updatedAt @map("updated_at")
@@ -44,6 +45,7 @@ model Application {
   
   // Informations du fichier
   hash      String   @unique @db.VarChar(64) // SHA-256 hash
+  icon      Bytes?   @map("icon") // Binary data for the app logo
   filename  String   @unique @db.VarChar(255) // Nom du fichier APK
   filePath  String?  @map("file_path") @db.VarChar(500) // Optionnel si stockage en DB
   fileData  Bytes?   @map("file_data") // Contenu binaire du fichier APK
@@ -93,7 +95,7 @@ model VirusTotalCheck {
   total         Int?
 
   scan_date  DateTime? @map("scan_date")
-  permalink  String?   @db.VarChar(500) // Lien vers le rapport VirusTotal
+  permalink  String @unique   @db.VarChar(500) // Lien vers le rapport VirusTotal
 
   scans    Json?     @map("scans") // Détails des scans par antivirus
 
