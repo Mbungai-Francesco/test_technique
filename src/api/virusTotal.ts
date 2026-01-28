@@ -1,12 +1,11 @@
-import axios from "axios";
-import { config, link} from ".";
+import { api, link } from ".";
 
 const route = "virus-scan"
 
 // Check virus report for an application
-export const checkVirusReport = async (applicationId: string, jwt: string) => {
+export const checkVirusReport = async (applicationId: string) => {
   try {
-    const res = await axios.post(`${link}/${route}/check-report/${applicationId}`, {}, config(jwt));
+    const res = await api.post(`${link}/${route}/check-report/${applicationId}`, {});
     console.log("message", res.statusText);
     return "success";
   } catch (error) {

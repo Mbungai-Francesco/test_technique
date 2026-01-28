@@ -9,6 +9,8 @@ import { routeTree } from './routeTree.gen'
 
 import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
+import { AppProvider } from './context/appContext.tsx'
+import { Toaster } from './components/ui/sonner.tsx'
 
 // Create a new router instance
 
@@ -37,9 +39,12 @@ if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
-      <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
-        <RouterProvider router={router} />
-      </TanStackQueryProvider.Provider>
+      <AppProvider>
+        <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
+          <RouterProvider router={router} />
+          <Toaster />
+        </TanStackQueryProvider.Provider>
+      </AppProvider>
     </StrictMode>,
   )
 }

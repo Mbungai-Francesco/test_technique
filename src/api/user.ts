@@ -1,13 +1,12 @@
-import axios from "axios";
-import { config, link } from ".";
+import { api, link } from ".";
 import type { User, UserUpdateDto } from "@/types";
 
 const route = "users";
 
 // Get all users
-export const getAllUsers = async (jwt: string) => {
+export const getAllUsers = async () => {
   try {
-    const res = await axios.get(`${link}/${route}`, config(jwt));
+    const res = await api.get(`${link}/${route}`);
     console.log("message", res.statusText);
     return res.data as Array<User>;
   } catch (error) {
@@ -17,9 +16,9 @@ export const getAllUsers = async (jwt: string) => {
 }
 
 // Get a single user by ID
-export const getUserById = async (id: string, jwt: string) => {
+export const getUserById = async (id: string) => {
   try {
-    const res = await axios.get(`${link}/${route}/${id}`, config(jwt));
+    const res = await api.get(`${link}/${route}/${id}`);
     console.log("message", res.statusText);
     return res.data as User;
   } catch (error) {
@@ -29,9 +28,9 @@ export const getUserById = async (id: string, jwt: string) => {
 }
 
 // Update a user
-export const updateUser = async (id: string, user: Partial<UserUpdateDto>, jwt: string) => {
+export const updateUser = async (id: string, user: Partial<UserUpdateDto>) => {
   try {
-    const res = await axios.patch(`${link}/${route}/${id}`, user, config(jwt));
+    const res = await api.patch(`${link}/${route}/${id}`, user);
     console.log("message", res.statusText);
     return res.data as User;
   } catch (error) {
@@ -41,9 +40,9 @@ export const updateUser = async (id: string, user: Partial<UserUpdateDto>, jwt: 
 }
 
 // Delete a user by ID
-export const deleteUser = async (id: string, jwt: string) => {
+export const deleteUser = async (id: string) => {
   try {
-    const res = await axios.delete(`${link}/${route}/${id}`, config(jwt));
+    const res = await api.delete(`${link}/${route}/${id}`);
     console.log("message", res.statusText);
     return true;
   } catch (error) {

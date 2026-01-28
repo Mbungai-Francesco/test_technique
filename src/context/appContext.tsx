@@ -5,6 +5,8 @@ import type { User } from '@/types'
 interface AppContextProps {
   user: User
   setUser: React.Dispatch<React.SetStateAction<User>>
+  id: string
+  setId: React.Dispatch<React.SetStateAction<string>>
   route: string
   setRoute: React.Dispatch<React.SetStateAction<string>>
 }
@@ -23,10 +25,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }
 
   const [user, setUser] = useState(emptyUser);
+  const [id, setId] = useState<string>('');
   const [route, setRoute] = useState<string>('')
 
+  useEffect(() => {
+    if(user.id !== '') setId(user.id);
+  }, [user.id])
+
   return (
-    <AppContext.Provider value={{ user, setUser, route, setRoute }}>
+    <AppContext.Provider value={{ user, setUser, route, setRoute, id, setId }}>
       {children}
     </AppContext.Provider>
   )

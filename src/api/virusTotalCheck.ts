@@ -1,13 +1,12 @@
-import axios from "axios";
-import { config, link } from ".";
+import { api, link } from ".";
 import type { VirusScanResponse, VirusTotalCheckDto, VirusTotalCheckUpdateDto } from "@/types";
 
 const route = "virus-check"
 
 // Create a new virus check
-export const createVirusCheck = async (virusCheck: VirusTotalCheckDto, jwt: string) => {
+export const createVirusCheck = async (virusCheck: VirusTotalCheckDto) => {
   try {
-    const res = await axios.post(`${link}/${route}`, virusCheck, config(jwt));
+    const res = await api.post(`${link}/${route}`, virusCheck);
     console.log("message", res.statusText);
     return res.data as VirusScanResponse;
   } catch (error) {
@@ -17,9 +16,9 @@ export const createVirusCheck = async (virusCheck: VirusTotalCheckDto, jwt: stri
 }
 
 // Get all virus checks
-export const getAllVirusChecks = async (jwt: string) => {
+export const getAllVirusChecks = async () => {
   try {
-    const res = await axios.get(`${link}/${route}`, config(jwt));
+    const res = await api.get(`${link}/${route}`);
     console.log("message", res.statusText);
     return res.data as Array<VirusScanResponse>;
   } catch (error) {
@@ -29,9 +28,9 @@ export const getAllVirusChecks = async (jwt: string) => {
 }
 
 // Get a single virus check by ID
-export const getVirusCheckById = async (id: string, jwt: string) => {
+export const getVirusCheckById = async (id: string) => {
   try {
-    const res = await axios.get(`${link}/${route}/${id}`, config(jwt));
+    const res = await api.get(`${link}/${route}/${id}`);
     console.log("message", res.statusText);
     return res.data as VirusScanResponse;
   } catch (error) {
@@ -41,9 +40,9 @@ export const getVirusCheckById = async (id: string, jwt: string) => {
 }
 
 // Get virus checks by application ID
-export const getVirusChecksByApplication = async (applicationId: string, jwt: string) => {
+export const getVirusChecksByApplication = async (applicationId: string) => {
   try {
-    const res = await axios.get(`${link}/${route}/application/${applicationId}`, config(jwt));
+    const res = await api.get(`${link}/${route}/application/${applicationId}`);
     console.log("message", res.statusText);
     return res.data as Array<VirusScanResponse>;
   } catch (error) {
@@ -53,9 +52,9 @@ export const getVirusChecksByApplication = async (applicationId: string, jwt: st
 }
 
 // Get virus check by permalink
-export const getVirusCheckByPermalink = async (permalink: string, jwt: string) => {
+export const getVirusCheckByPermalink = async (permalink: string) => {
   try {
-    const res = await axios.get(`${link}/${route}/permalink/${permalink}`, config(jwt));
+    const res = await api.get(`${link}/${route}/permalink/${permalink}`);
     console.log("message", res.statusText);
     return res.data as VirusScanResponse;
   } catch (error) {
@@ -65,9 +64,9 @@ export const getVirusCheckByPermalink = async (permalink: string, jwt: string) =
 }
 
 // Get latest virus check by application ID
-export const getLatestVirusCheckByApplication = async (applicationId: string, jwt: string) => {
+export const getLatestVirusCheckByApplication = async (applicationId: string) => {
   try {
-    const res = await axios.get(`${link}/${route}/application/${applicationId}/latest`, config(jwt));
+    const res = await api.get(`${link}/${route}/application/${applicationId}/latest`);
     console.log("message", res.statusText);
     return res.data as VirusScanResponse;
   } catch (error) {
@@ -77,9 +76,9 @@ export const getLatestVirusCheckByApplication = async (applicationId: string, jw
 }
 
 // Update a virus check
-export const updateVirusCheck = async (id: string, virusCheck: Partial<VirusTotalCheckUpdateDto>, jwt: string) => {
+export const updateVirusCheck = async (id: string, virusCheck: Partial<VirusTotalCheckUpdateDto>) => {
   try {
-    const res = await axios.patch(`${link}/${route}/${id}`, virusCheck, config(jwt));
+    const res = await api.patch(`${link}/${route}/${id}`, virusCheck);
     console.log("message", res.statusText);
     return res.data as VirusScanResponse;
   } catch (error) {
@@ -89,9 +88,9 @@ export const updateVirusCheck = async (id: string, virusCheck: Partial<VirusTota
 }
 
 // Delete a virus check by ID
-export const deleteVirusCheck = async (id: string, jwt: string) => {
+export const deleteVirusCheck = async (id: string) => {
   try {
-    const res = await axios.delete(`${link}/${route}/${id}`, config(jwt));
+    const res = await api.delete(`${link}/${route}/${id}`);
     console.log("message", res.statusText);
     return true;
   } catch (error) {
@@ -101,9 +100,9 @@ export const deleteVirusCheck = async (id: string, jwt: string) => {
 }
 
 // Delete all virus checks by application ID
-export const deleteVirusChecksByApplication = async (applicationId: string, jwt: string) => {
+export const deleteVirusChecksByApplication = async (applicationId: string) => {
   try {
-    const res = await axios.delete(`${link}/${route}/application/${applicationId}`, config(jwt));
+    const res = await api.delete(`${link}/${route}/application/${applicationId}`);
     console.log("message", res.statusText);
     return true;
   } catch (error) {

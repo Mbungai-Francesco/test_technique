@@ -1,12 +1,11 @@
-import axios from "axios";
-import { config, link } from ".";
+import { api, link } from ".";
 import type { Application, ApplicationCreateDto, ApplicationUpdateDto } from "@/types";
 
 const route = "application";
 
-export const createApp = async (app : ApplicationCreateDto, jwt: string) => {
+export const createApp = async (app : ApplicationCreateDto) => {
   try{
-    const res = await axios.post(`${link}/${route}`, app, config(jwt));
+    const res = await api.post(`${link}/${route}`, app);
     console.log("message", res.statusText);
     return res.data as Application
   }
@@ -17,9 +16,9 @@ export const createApp = async (app : ApplicationCreateDto, jwt: string) => {
 }
 
 // Get all applications
-export const getAllApps = async (jwt: string) => {
+export const getAllApps = async () => {
   try {
-    const res = await axios.get(`${link}/${route}`, config(jwt));
+    const res = await api.get(`${link}/${route}`);
     console.log("message", res.statusText);
     return res.data as Array<Application>;
   } catch (error) {
@@ -29,9 +28,9 @@ export const getAllApps = async (jwt: string) => {
 }
 
 // Get all applications by user ID
-export const getAppsByUser = async (userId: string, jwt: string) => {
+export const getAppsByUser = async (userId: string, ) => {
   try {
-    const res = await axios.get(`${link}/${route}/user/${userId}`, config(jwt));
+    const res = await api.get(`${link}/${route}/user/${userId}`);
     console.log("message", res.statusText);
     return res.data as Array<Application>;
   } catch (error) {
@@ -41,9 +40,9 @@ export const getAppsByUser = async (userId: string, jwt: string) => {
 }
 
 // Get a single application by ID
-export const getAppById = async (id: string, jwt: string) => {
+export const getAppById = async (id: string, ) => {
   try {
-    const res = await axios.get(`${link}/${route}/${id}`, config(jwt));
+    const res = await api.get(`${link}/${route}/${id}`);
     console.log("message", res.statusText);
     return res.data as Application;
   } catch (error) {
@@ -53,10 +52,9 @@ export const getAppById = async (id: string, jwt: string) => {
 }
 
 // Download application file
-export const downloadAppFile = async (id: string, jwt: string) => {
+export const downloadAppFile = async (id: string, ) => {
   try {
-    const res = await axios.get(`${link}/${route}/${id}/download`, {
-      ...config(jwt),
+    const res = await api.get(`${link}/${route}/${id}/download`, {
       responseType: "blob",
     });
     console.log("message", res.statusText);
@@ -68,9 +66,9 @@ export const downloadAppFile = async (id: string, jwt: string) => {
 }
 
 // Update an application
-export const updateApp = async (id: string, app: Partial<ApplicationUpdateDto>, jwt: string) => {
+export const updateApp = async (id: string, app: Partial<ApplicationUpdateDto>, ) => {
   try {
-    const res = await axios.patch(`${link}/${route}/${id}`, app, config(jwt));
+    const res = await api.patch(`${link}/${route}/${id}`, app);
     console.log("message", res.statusText);
     return res.data as Application;
   } catch (error) {
@@ -80,9 +78,9 @@ export const updateApp = async (id: string, app: Partial<ApplicationUpdateDto>, 
 }
 
 // Delete an application by ID
-export const deleteApp = async (id: string, jwt: string) => {
+export const deleteApp = async (id: string, ) => {
   try {
-    const res = await axios.delete(`${link}/${route}/${id}`, config(jwt));
+    const res = await api.delete(`${link}/${route}/${id}`);
     console.log("message", res.statusText);
     return true;
   } catch (error) {
@@ -92,9 +90,9 @@ export const deleteApp = async (id: string, jwt: string) => {
 }
 
 // Delete all applications by user ID
-export const deleteAppsByUser = async (userId: string, jwt: string) => {
+export const deleteAppsByUser = async (userId: string, ) => {
   try {
-    const res = await axios.delete(`${link}/${route}/user/${userId}`, config(jwt));
+    const res = await api.delete(`${link}/${route}/user/${userId}`);
     console.log("message", res.statusText);
     return true;
   } catch (error) {

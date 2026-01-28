@@ -1,5 +1,4 @@
-import axios from "axios";
-import { config, link } from ".";
+import { api, link } from ".";
 import type { AuthResponse , LoginDto,  RegisterDto, User} from "@/types";
 
 const route = "auth";
@@ -7,7 +6,7 @@ const route = "auth";
 // Register a new user
 export const register = async (registerDto: RegisterDto) => {
   try {
-    const res = await axios.post(`${link}/${route}/register`, registerDto);
+    const res = await api.post(`${link}/${route}/register`, registerDto);
     console.log("message", res.statusText);
     return res.data as AuthResponse;
   } catch (error) {
@@ -19,7 +18,7 @@ export const register = async (registerDto: RegisterDto) => {
 // Login user
 export const login = async (loginDto: LoginDto) => {
   try {
-    const res = await axios.post(`${link}/${route}/login`, loginDto);
+    const res = await api.post(`${link}/${route}/login`, loginDto);
     console.log("message", res.statusText);
     return res.data as AuthResponse;
   } catch (error) {
@@ -28,10 +27,22 @@ export const login = async (loginDto: LoginDto) => {
   }
 }
 
-// Get current user profile
-export const getProfile = async (jwt: string) => {
+// Login user
+export const logout = async () => {
   try {
-    const res = await axios.get(`${link}/${route}/profile`, config(jwt));
+    const res = await api.post(`${link}/${route}/logout`);
+    console.log("message", res.statusText);
+    return res.data.message as string;
+  } catch (error) {
+    console.error('Error:', error);
+    return null;
+  }
+}
+
+// Get current user profile
+export const getProfile = async () => {
+  try {
+    const res = await api.get(`${link}/${route}/profile`);
     console.log("message", res.statusText);
     return res.data as User;
   } catch (error) {

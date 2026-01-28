@@ -1,14 +1,14 @@
 import { Link } from '@tanstack/react-router'
 
 import { useState } from 'react'
-import { Home, Menu, Network, X } from 'lucide-react'
+import { Home, Layers, Menu, Network, X } from 'lucide-react'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
     <>
-      <header className="p-4 flex items-center bg-gray-800 text-white shadow-lg">
+      <header className="p-4 flex items-center bg-blue-600 text-white shadow-lg">
         <button
           onClick={() => setIsOpen(true)}
           className="p-2 hover:bg-gray-700 rounded-lg transition-colors"
@@ -18,11 +18,7 @@ export default function Header() {
         </button>
         <h1 className="ml-4 text-xl font-semibold">
           <Link to="/">
-            <img
-              src="/tanstack-word-logo-white.svg"
-              alt="TanStack Logo"
-              className="h-10"
-            />
+            <h2 className="text-2xl font-bold">Cesco Security</h2>
           </Link>
         </h1>
       </header>
@@ -33,7 +29,7 @@ export default function Header() {
         }`}
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <h2 className="text-xl font-bold">Navigation</h2>
+          <h2 className="text-xl font-bold">Menu</h2>
           <button
             onClick={() => setIsOpen(false)}
             className="p-2 hover:bg-gray-800 rounded-lg transition-colors"
@@ -50,16 +46,29 @@ export default function Header() {
             className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
             activeProps={{
               className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
+                'flex items-center gap-3 p-3 rounded-lg bg-blue-600 hover:bg-cyan-700 transition-colors mb-2',
             }}
           >
             <Home size={20} />
             <span className="font-medium">Home</span>
           </Link>
+          
+          <Link
+            to="/library"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
+            activeProps={{
+              className:
+                'flex items-center gap-3 p-3 rounded-lg bg-blue-600 hover:bg-cyan-700 transition-colors mb-2',
+            }}
+          >
+            <Layers size={20} />
+            <span className="font-medium">Library</span>
+          </Link>
 
           {/* Demo Links Start */}
 
-          <Link
+          {/* <Link
             to="/demo/tanstack-query"
             onClick={() => setIsOpen(false)}
             className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
@@ -70,7 +79,7 @@ export default function Header() {
           >
             <Network size={20} />
             <span className="font-medium">TanStack Query</span>
-          </Link>
+          </Link> */}
 
           {/* Demo Links End */}
         </nav>
