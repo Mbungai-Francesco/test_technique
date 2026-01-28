@@ -30,3 +30,12 @@ export interface ApplicationCreateDto {
   name: string
   comment?: string
 }
+
+export interface ApplicationUpdateDto {
+  name?: string
+  comment?: string
+  icon?: Buffer
+  virusCheckStatus: AppState
+  scanResult?: VirusCheckStatus
+  permalink?: string
+}
