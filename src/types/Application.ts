@@ -21,9 +21,7 @@ export interface Application {
 
 export interface ApplicationCreateDto {
   userId: string
-  hash: string
   filename: string
-  filePath: string
   fileSize: bigint
   fileData: Buffer
   mimeType: string

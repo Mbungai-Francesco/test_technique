@@ -5,6 +5,8 @@ import { getProfile } from '@/api/auth'
 import { getAppsByUser } from '@/api/application'
 import { Search, Upload } from 'lucide-react'
 import { Input } from '@/components/ui/input'
+import { useState } from 'react'
+import { UploadApp } from '@/components/popups/UploadApp'
 
 export const Route = createFileRoute('/library/')({
   beforeLoad: async () => {
@@ -25,6 +27,7 @@ export const Route = createFileRoute('/library/')({
 
 function RouteComponent() {
   const { id } = useAppContext()
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   const { isFetched, data: res } = useQuery({
     queryKey: ['applications'],
@@ -45,13 +48,18 @@ function RouteComponent() {
           />
         </div>
         <button
-          onClick={() => {}}
+          onClick={() => setIsUploadModalOpen(true)}
           className="flex items-center gap-3 p-3 rounded-lg bg-blue-800 hover:bg-blue-800 transition-colors mb-2"
         >
           <Upload size={20} className="text-white" />
           <span className="font-medium text-white">Upload App</span>
         </button>
       </div>
+
+      <UploadApp
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+      />
     </div>
   )
 }
