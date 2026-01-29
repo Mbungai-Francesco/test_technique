@@ -30,45 +30,6 @@ export class ApplicationService {
     };
   }
 
-  async extractIcon(fileBuffer: Buffer): Promise<Buffer | null> {
-    try {
-      const zip = new AdmZip(fileBuffer);
-      const zipEntries = zip.getEntries();
-
-      // 1. Find the AndroidManifest to look for the icon path
-      const manifestEntry = zipEntries.find((e) => e.entryName === 'AndroidManifest.xml');
-      if (!manifestEntry) return null;
-
-      // Note: AndroidManifest in APK is binary XML.
-      // To properly parse it you need a binary decoder, BUT
-      // for a test, we can look for common icon locations:
-
-      const iconPatterns = [
-        'res/drawable-hdpi-v4/ic_launcher.png',
-        'res/mipmap-hdpi-v4/ic_launcher.png',
-        'res/drawable/icon.png',
-        'res/mipmap-hdpi/ic_launcher.png',
-        'assets/icon.png',
-      ];
-
-      // Search for any entry that looks like a launcher icon
-      const iconEntry = zipEntries.find(
-        (e) =>
-          iconPatterns.some((pattern) => e.entryName.includes(pattern)) ||
-          (e.entryName.includes('ic_launcher') && e.entryName.endsWith('.png')),
-      );
-
-      if (iconEntry) {
-        return iconEntry.getData(); // This returns the Buffer
-      }
-
-      return null;
-    } catch (error) {
-      this.logger.error('Icon extraction failed with AdmZip:', error.message);
-      return null;
-    }
-  }
-
   private calculateHash(buffer: Buffer): string {
     return crypto.createHash('sha256').update(buffer).digest('hex');
   }
@@ -91,12 +52,13 @@ export class ApplicationService {
 
     // Ensure fileData is a Buffer
     const fileBuffer = this.ensureBuffer(createApplicationDto.fileData);
+    const iconBuffer = this.ensureBuffer(createApplicationDto.icon);
     const fileHash = this.calculateHash(fileBuffer);
 
     // const parser = new ApkParser(fileBuffer);
     // const manifest = parser.getManifest();
     // const iconPath = manifest.application.icon;
-    const iconBuffer = await this.extractIcon(fileBuffer);
+    // const iconBuffer = await this.extractIcon(fileBuffer);
 
     if (existingApp) {
       throw new Error('Application with this filename already exists');

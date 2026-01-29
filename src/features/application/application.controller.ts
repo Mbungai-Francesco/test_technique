@@ -11,13 +11,14 @@ import {
   UseInterceptors,
   UploadedFile,
   Logger,
+  UploadedFiles,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ApplicationService } from './application.service';
 import { CreateApplicationDto } from './dto/create-application.dto';
 import { UpdateApplicationDto } from './dto/update-application.dto';
 import { JwtAuthGuard } from 'src/features/auth/guards/jwt-auth.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor, FileInterceptor } from '@nestjs/platform-express';
 import { File as MulterFile } from 'multer';
 
 @UseGuards(JwtAuthGuard)
@@ -28,9 +29,14 @@ export class ApplicationController {
   constructor(private readonly applicationService: ApplicationService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('fileData'))
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'fileData', maxCount: 1 }, // Matches your APK field
+      { name: 'icon', maxCount: 1 },     // Matches your icon field
+    ]),
+  )
   create(
-    @UploadedFile() fileData: MulterFile,
+    @UploadedFiles() files: { fileData?: MulterFile[], icon?: MulterFile[] },
     @Body('name') name: string,
     @Body('comment') comment: string,
     @Body('userId') userId: string,
@@ -38,6 +44,13 @@ export class ApplicationController {
     @Body('fileSize') fileSize: string,
     @Body('mimeType') mimeType: string,
   ) {
+    const apkFile = files.fileData?.[0];
+    const iconFile = files.icon?.[0];
+
+    if (!apkFile) {
+      throw new Error('APK file is missing');
+    }
+
     const createApplicationDto: CreateApplicationDto = {
       name,
       comment,
@@ -45,7 +58,8 @@ export class ApplicationController {
       filename,
       fileSize,
       mimeType,
-      fileData: fileData.buffer,
+      fileData: apkFile.buffer,
+      icon: iconFile ? iconFile.buffer : null
     };
 
     // this.logger.error('Object', createApplicationDto);
