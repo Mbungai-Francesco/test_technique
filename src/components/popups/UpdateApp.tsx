@@ -20,6 +20,14 @@ interface props {
   app: Application
 }
 
+const convertSizeToReadable = (size ?: bigint) => {
+  if(!size) return '0 B';
+
+  const i = Math.floor(Math.log(Number(size)) / Math.log(1024));
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+  return (Number(size) / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+}
+
 export const UpdateApp = ({ isOpen, onClose, reFresh, app }: props) => {
   const { id } = useAppContext()
 
@@ -37,7 +45,7 @@ export const UpdateApp = ({ isOpen, onClose, reFresh, app }: props) => {
     // console.log("app : ", app); 
     setName(app.name);
     setComment(app.comment);
-  }, [app])
+  }, [isOpen])
 
   // Handle drag events
   const handleDrag = (e: React.DragEvent) => {
@@ -73,9 +81,10 @@ export const UpdateApp = ({ isOpen, onClose, reFresh, app }: props) => {
   const handleFile = (file: File) => {
     // Validate file type
     if (
-      !file.name.endsWith('.png') ||
-      !file.name.endsWith('.jpeg') ||
-      !file.name.endsWith('.jpg')
+      !file.name.endsWith('.png') &&
+      !file.name.endsWith('.jpeg') &&
+      !file.name.endsWith('.jpg')&&
+      !file.name.endsWith('.webp')
     ) {
       setError('Please select a valid PNG file')
       return
@@ -128,7 +137,6 @@ export const UpdateApp = ({ isOpen, onClose, reFresh, app }: props) => {
   // Remove selected file
   const handleRemoveFile = () => {
     setSelectedFile(null)
-    setName('')
     setError('')
   }
 
@@ -238,7 +246,7 @@ export const UpdateApp = ({ isOpen, onClose, reFresh, app }: props) => {
                     </p>
                     <input
                       type="file"
-                      accept=".png,.jpg,.jpeg,.gif"
+                      accept=".png,.jpg,.jpeg,.gif,.webp"
                       onChange={handleChange}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
@@ -271,7 +279,7 @@ export const UpdateApp = ({ isOpen, onClose, reFresh, app }: props) => {
                           {selectedFile.name}
                         </p>
                         <p className="text-sm text-gray-500">
-                          {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                          {convertSizeToReadable(BigInt(selectedFile.size))}
                         </p>
                       </div>
                     </div>
@@ -335,7 +343,7 @@ export const UpdateApp = ({ isOpen, onClose, reFresh, app }: props) => {
                 </button>
                 <button
                   type="submit"
-                  disabled={name == app.name && comment == app.comment}
+                  disabled={name == app.name && comment == app.comment && !selectedFile || isUploading}
                   className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
                 >
                   {isUploading ? (

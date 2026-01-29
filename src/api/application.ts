@@ -38,7 +38,7 @@ export const getAllApps = async () => {
 export const getAppsByUser = async (userId: string) => {
   try {
     const res = await api.get(`${link}/${route}/user/${userId}`)
-    console.log('message', res.statusText)
+    console.log('message', res.statusText)    
     return res.data as Array<Application>
   } catch (error) {
     console.error('Error:', error)

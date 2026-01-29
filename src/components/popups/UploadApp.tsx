@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AlertCircle,
   CheckCircle2,
@@ -7,11 +7,13 @@ import {
   Upload,
   X,
 } from 'lucide-react'
+import JSZip from 'jszip'
 import { toast } from 'sonner'
 import { useMutation } from '@tanstack/react-query'
 import { useAppContext } from '@/hooks/useAppContext'
 import { loadToast } from '@/lib/loadToast'
 import { createApp } from '@/api/application'
+import { set } from 'zod'
 
 interface props {
   isOpen: boolean
@@ -19,9 +21,65 @@ interface props {
   reFresh: () => void
 }
 
+export interface IconResult {
+  preview: string;
+  file ?: File;
+}
+
+const getIconFromFile = async (file: File): Promise<IconResult | null> => {
+  try {
+    console.log('in zipper')
+
+    const zip = await JSZip.loadAsync(file)
+
+    // 1. Define common launcher icon patterns
+    // We prioritize high-density (xhdpi/xxhdpi) for better quality
+    const iconCandidates = Object.keys(zip.files).filter(
+      (path) =>
+        (path.includes('ic_launcher') || path.includes('icon')) &&
+        path.endsWith('.png'),
+    )
+
+    if (iconCandidates.length === 0) return null
+
+    // 2. Pick a high-density icon if available, otherwise take the first one
+    const targetPath =
+      iconCandidates.find((p) => p.includes('xxhdpi')) ||
+      iconCandidates.find((p) => p.includes('xhdpi')) ||
+      iconCandidates[0]
+
+    const iconFile = zip.files[targetPath]
+
+    // Convert to Uint8Array
+    const uint8Array = await iconFile.async('uint8array')
+
+    // Create a File object
+    const iconAsFile = new (window.File as any)([uint8Array], 'icon.webp', { 
+      type: 'image/webp',
+      lastModified: Date.now() 
+    }) as File;
+
+    // console.log('iconAsFile ', iconAsFile);
+    
+
+    // Convert to Base64 for preview
+    const base64 = btoa(
+      uint8Array.reduce((data, byte) => data + String.fromCharCode(byte), ''),
+    )
+    const preview = `data:image/png;base64,${base64}`
+
+    return {
+      preview,
+      file: iconAsFile
+    }
+  } catch (error) {
+    console.error('Extraction failed:', error)
+    return null
+  }
+}
+
 export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
   const { id } = useAppContext()
-  const [iconUrl, setIconUrl] = useState<string | null>(null)
 
   const [dragActive, setDragActive] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -30,6 +88,22 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [error, setError] = useState('')
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [iconFile, setIconFile] = useState<File | null>(null)
+
+  useEffect(() => {
+      console.log("in effect");
+      
+      if(selectedFile)
+      getIconFromFile(selectedFile).then((icon) => {
+        // console.log(icon?.file)
+
+        setIconFile(icon?.file || null)
+        setPreviewUrl(icon?.preview || null)
+      })
+    }, [selectedFile])
+
 
   // Handle drag events
   const handleDrag = (e: React.DragEvent) => {
@@ -100,6 +174,7 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
     formData.append('filename', selectedFile.name)
     formData.append('fileSize', selectedFile.size.toString())
     formData.append('mimeType', selectedFile.type)
+    if(iconFile) formData.append('icon', iconFile)
 
     console.log(formData)
 
@@ -249,7 +324,15 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
                   <div className="flex items-center justify-between bg-white rounded-lg p-4">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <File className="w-6 h-6 text-green-600" />
+                        {previewUrl ? (
+                          <img
+                            src={previewUrl}
+                            alt="Preview"
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <File className="w-6 h-6 text-green-600" />
+                        )}
                       </div>
                       <div className="text-left">
                         <p className="font-medium text-gray-900">
