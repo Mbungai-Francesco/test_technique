@@ -21,8 +21,8 @@ interface props {
 }
 
 export interface IconResult {
-  preview: string;
-  file ?: File;
+  preview: string
+  file?: File
 }
 
 const getIconFromFile = async (file: File): Promise<IconResult | null> => {
@@ -53,13 +53,12 @@ const getIconFromFile = async (file: File): Promise<IconResult | null> => {
     const uint8Array = await iconFile.async('uint8array')
 
     // Create a File object
-    const iconAsFile = new (window.File as any)([uint8Array], 'icon.webp', { 
+    const iconAsFile = new (window.File as any)([uint8Array], 'icon.webp', {
       type: 'image/webp',
-      lastModified: Date.now() 
-    }) as File;
+      lastModified: Date.now(),
+    }) as File
 
     // console.log('iconAsFile ', iconAsFile);
-    
 
     // Convert to Base64 for preview
     const base64 = btoa(
@@ -69,7 +68,7 @@ const getIconFromFile = async (file: File): Promise<IconResult | null> => {
 
     return {
       preview,
-      file: iconAsFile
+      file: iconAsFile,
     }
   } catch (error) {
     console.error('Extraction failed:', error)
@@ -92,17 +91,16 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
   const [iconFile, setIconFile] = useState<File | null>(null)
 
   useEffect(() => {
-      console.log("in effect");
-      
-      if(selectedFile)
+    console.log('in effect')
+
+    if (selectedFile)
       getIconFromFile(selectedFile).then((icon) => {
         // console.log(icon?.file)
 
         setIconFile(icon?.file || null)
         setPreviewUrl(icon?.preview || null)
       })
-    }, [selectedFile])
-
+  }, [selectedFile])
 
   // Handle drag events
   const handleDrag = (e: React.DragEvent) => {
@@ -137,8 +135,13 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
   // Process file
   const handleFile = (file: File) => {
     // Validate file type
-    if (!file.name.endsWith('.apk')) {
-      setError('Please select a valid APK file')
+    if (
+      !file.name.endsWith('.apk') &&
+      !file.name.endsWith('.zip') &&
+      !file.name.endsWith('.xapk')&&
+      !file.name.endsWith('.ipa')
+    ) {
+      setError('Please select a valid APK, zip, XAPK, or IPA file')
       return
     }
 
@@ -173,7 +176,7 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
     formData.append('filename', selectedFile.name)
     formData.append('fileSize', selectedFile.size.toString())
     formData.append('mimeType', selectedFile.type)
-    if(iconFile) formData.append('icon', iconFile)
+    if (iconFile) formData.append('icon', iconFile)
 
     console.log(formData)
 
@@ -305,7 +308,7 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
                     </p>
                     <input
                       type="file"
-                      accept=".apk"
+                      accept=".apk,.zip,.xapk,.ipa"
                       onChange={handleChange}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />

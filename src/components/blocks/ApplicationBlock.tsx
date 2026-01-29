@@ -1,11 +1,10 @@
-import { Loader2, Pencil, Trash, Upload } from 'lucide-react'
+import { Loader2, Pencil, Trash } from 'lucide-react'
 import { useState } from 'react'
-import type { Application } from '@/types'
+import { toast } from 'sonner'
 import { useMutation } from '@tanstack/react-query'
+import type { Application } from '@/types'
 import { loadToast } from '@/lib/loadToast'
 import { deleteApp } from '@/api/application'
-import { toast } from 'sonner'
-import { flattenError, set } from 'zod'
 
 interface props {
   app: Application
