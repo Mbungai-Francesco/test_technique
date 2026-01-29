@@ -3,9 +3,13 @@ import type { Application, ApplicationCreateDto, ApplicationUpdateDto } from "@/
 
 const route = "application";
 
-export const createApp = async (app : ApplicationCreateDto) => {
+export const createApp = async (app : FormData) => {
   try{
-    const res = await api.post(`${link}/${route}`, app);
+    const res = await api.post(`${link}/${route}`, app, {
+      headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+    });
     console.log("message", res.statusText);
     return res.data as Application
   }

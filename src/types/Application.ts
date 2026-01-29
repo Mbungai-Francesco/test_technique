@@ -6,7 +6,6 @@ export interface Application {
   hash: string
   icon?: Buffer
   filename: string
-  filePath: string
   fileSize: bigint
   mimeType: string
   name: string
@@ -22,8 +21,8 @@ export interface Application {
 export interface ApplicationCreateDto {
   userId: string
   filename: string
-  fileSize: bigint
-  fileData: Buffer
+  fileSize: number
+  fileData: File
   mimeType: string
   name: string
   comment?: string

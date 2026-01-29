@@ -1,148 +1,171 @@
 import { useState } from 'react'
-import { AlertCircle, CheckCircle2, File, Loader2, Upload, X } from 'lucide-react';
-import type { ApplicationCreateDto } from '@/types';
-import { useAppContext } from '@/hooks/useAppContext';
+import {
+  AlertCircle,
+  CheckCircle2,
+  File,
+  Loader2,
+  Upload,
+  X,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { useMutation } from '@tanstack/react-query'
+import type { ApplicationCreateDto } from '@/types'
+import { useAppContext } from '@/hooks/useAppContext'
+import { loadToast } from '@/lib/loadToast'
+import { createApp } from '@/api/application'
 
 interface props {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen: boolean
+  onClose: () => void
+  reFresh: () => void
 }
 
-export const UploadApp = ({ isOpen, onClose }: props) => {
+export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
   const { id } = useAppContext()
 
-  const [dragActive, setDragActive] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [name, setName] = useState('');
-  const [comment, setComment] = useState('');
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [error, setError] = useState('');
+  const [dragActive, setDragActive] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [name, setName] = useState('')
+  const [comment, setComment] = useState('')
+  const [isUploading, setIsUploading] = useState(false)
+  const [uploadSuccess, setUploadSuccess] = useState(false)
+  const [error, setError] = useState('')
 
   // Handle drag events
   const handleDrag = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault()
+    e.stopPropagation()
     if (e.type === 'dragenter' || e.type === 'dragover') {
-      setDragActive(true);
+      setDragActive(true)
     } else if (e.type === 'dragleave') {
-      setDragActive(false);
+      setDragActive(false)
     }
-  };
+  }
 
   // Handle drop
   const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
+    e.preventDefault()
+    e.stopPropagation()
+    setDragActive(false)
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0]);
+      handleFile(e.dataTransfer.files[0])
     }
-  };
+  }
 
   // Handle file input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
+    e.preventDefault()
     if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
+      handleFile(e.target.files[0])
     }
-  };
+  }
 
   // Process file
   const handleFile = (file: File) => {
     // Validate file type
     if (!file.name.endsWith('.apk')) {
-      setError('Please select a valid APK file');
-      return;
+      setError('Please select a valid APK file')
+      return
     }
 
     // Validate file size (100MB max)
     if (file.size > 100 * 1024 * 1024) {
-      setError('File size must be less than 100MB');
-      return;
+      setError('File size must be less than 100MB')
+      return
     }
 
-    setSelectedFile(file);
-    setName(file.name.replace('.apk', ''));
-    setError('');
-  };
+    setSelectedFile(file)
+    setName(file.name.replace('.apk', ''))
+    setError('')
+  }
 
   // Handle form submit
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+    e.preventDefault()
+
     if (!selectedFile) {
-      setError('Please select a file');
-      return;
+      setError('Please select a file')
+      return
     }
 
-    setIsUploading(true);
-    setError('');
+    setIsUploading(true)
+    setError('')
 
-    const newApp : ApplicationCreateDto ={
-      name,
-      comment,
-      userId: id,
-      fileData: await selectedFile.arrayBuffer() as unknown as Buffer,
-      filename: selectedFile.name,
-      fileSize: BigInt(selectedFile.size),
-      mimeType: selectedFile.type,
-      // file will be handled in the backend via FormData
-    }
+    const formData = new FormData();
+    formData.append('fileData', selectedFile);
+    formData.append('name', name);
+    formData.append('comment', comment);
+    formData.append('userId', id);
+    formData.append('filename', selectedFile.name);
+    formData.append('fileSize', selectedFile.size.toString());
+    formData.append('mimeType', selectedFile.type);
 
-    console.log(newApp);
-    
+    // const newApp: ApplicationCreateDto = {
+    //   name,
+    //   comment,
+    //   userId: id,
+    //   fileData:  selectedFile,
+    //   filename: selectedFile.name,
+    //   fileSize: selectedFile.size,
+    //   mimeType: selectedFile.type,
+    //   // file will be handled in the backend via FormData
+    // }
 
-    try {
-      // TODO: Add your upload logic here
-      // const formData = new FormData();
-      // formData.append('file', selectedFile);
-      // formData.append('name', name);
-      // formData.append('comment', comment);
-      // await uploadApplication(formData);
+    console.log(formData)
 
-      // Simulate upload
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
-      setUploadSuccess(true);
-      
-      // Close modal after success
-      setTimeout(() => {
-        handleClose();
-      }, 1500);
-
-    } catch (err: any) {
-      setError(err.message || 'Upload failed');
-    } finally {
-      setIsUploading(false);
-    }
-  };
+    mutate(formData)
+  }
 
   // Reset and close
   const handleClose = () => {
-    setSelectedFile(null);
-    setName('');
-    setComment('');
-    setError('');
-    setIsUploading(false);
-    setUploadSuccess(false);
-    onClose();
-  };
+    setSelectedFile(null)
+    setName('')
+    setComment('')
+    setError('')
+    setIsUploading(false)
+    setUploadSuccess(false)
+    onClose()
+    toast.dismiss()
+  }
 
   // Remove selected file
   const handleRemoveFile = () => {
-    setSelectedFile(null);
-    setName('');
-    setError('');
-  };
+    setSelectedFile(null)
+    setName('')
+    setError('')
+  }
 
-  if (!isOpen) return null;
+  const { mutate } = useMutation({
+    mutationFn: (val: FormData) => {
+      loadToast('Uploading', '', 0, 'blue')
+      return createApp(val)
+    },
+    onSuccess: (data) => {
+      if (data !== null) {
+        setUploadSuccess(true)
+        toast.dismiss()
+
+        setTimeout(() => {
+          handleClose()
+        }, 1500)
+
+        setIsUploading(false)
+        reFresh()
+      } else loadToast('Warning', 'Upload failed', 3000, 'red')
+    },
+    onError: (err) => {
+      loadToast('Warning', 'Upload failed', 3000, 'red')
+      console.error('Error uploading application:', err)
+    },
+  })
+
+  if (!isOpen) return null
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/70 transition-opacity"
         onClick={handleClose}
       />
@@ -200,8 +223,8 @@ export const UploadApp = ({ isOpen, onClose }: props) => {
                   dragActive
                     ? 'border-blue-500 bg-blue-50'
                     : selectedFile
-                    ? 'border-green-500 bg-green-50'
-                    : 'border-gray-300 hover:border-gray-400'
+                      ? 'border-green-500 bg-green-50'
+                      : 'border-gray-300 hover:border-gray-400'
                 }`}
                 onDragEnter={handleDrag}
                 onDragLeave={handleDrag}
@@ -300,15 +323,24 @@ export const UploadApp = ({ isOpen, onClose }: props) => {
               <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <div className="flex gap-3">
                   <div className="flex-shrink-0">
-                    <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+                    <svg
+                      className="w-5 h-5 text-blue-600"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   </div>
                   <div className="text-sm text-blue-800">
                     <p className="font-medium mb-1">Automatic Scanning</p>
                     <p>
-                      Your application will be automatically scanned using VirusTotal's 68+ antivirus engines. 
-                      This may take a few minutes.
+                      Your application will be automatically scanned using
+                      VirusTotal's 68+ antivirus engines. This may take a few
+                      minutes.
                     </p>
                   </div>
                 </div>
@@ -347,5 +379,5 @@ export const UploadApp = ({ isOpen, onClose }: props) => {
         </div>
       </div>
     </div>
-  );
+  )
 }
