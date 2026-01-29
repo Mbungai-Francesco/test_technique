@@ -30,19 +30,20 @@ export class ApplicationService {
     };
   }
 
-  private calculateHash(buffer: Buffer): string {
+  private calculateHash(buffer: Buffer | null): string {
+    if (!buffer) return '';
     return crypto.createHash('sha256').update(buffer).digest('hex');
   }
 
   // Utility to ensure fileData is a Buffer
-  private ensureBuffer(data: any): Buffer {
+  private ensureBuffer(name:string, data: any): Buffer | null {
     // this.logger.error('Data', data);
     if (Buffer.isBuffer(data)) return data;
     if (typeof data === 'string') return Buffer.from(data, 'base64');
     if (data && typeof data === 'object' && data.type === 'Buffer' && Array.isArray(data.data)) {
       return Buffer.from(data.data);
     }
-    throw new Error('Invalid fileData: must be Buffer, base64 string, or Buffer-like object');
+    return null;
   }
 
   async create(createApplicationDto: CreateApplicationDto) {
@@ -51,14 +52,17 @@ export class ApplicationService {
     });
 
     // Ensure fileData is a Buffer
-    const fileBuffer = this.ensureBuffer(createApplicationDto.fileData);
-    const iconBuffer = this.ensureBuffer(createApplicationDto.icon);
-    const fileHash = this.calculateHash(fileBuffer);
+    const fileBuffer = this.ensureBuffer('fileData', createApplicationDto.fileData);
+    const iconBuffer = this.ensureBuffer('icon', createApplicationDto.icon);
+    const fileHash = this.calculateHash(fileBuffer || null);
 
     // const parser = new ApkParser(fileBuffer);
     // const manifest = parser.getManifest();
     // const iconPath = manifest.application.icon;
     // const iconBuffer = await this.extractIcon(fileBuffer);
+    if(fileBuffer === null) {
+      throw new Error(`Invalid fileData: must be Buffer, base64 string, or Buffer-like object`);
+    }
 
     if (existingApp) {
       throw new Error('Application with this filename already exists');
