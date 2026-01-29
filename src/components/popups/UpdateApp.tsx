@@ -1,11 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  AlertCircle,
-  CheckCircle2,
-  Loader2,
-  Upload,
-  X,
-} from 'lucide-react'
+import { AlertCircle, CheckCircle2, Loader2, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useMutation } from '@tanstack/react-query'
 import type { Application } from '@/types'
@@ -20,12 +14,12 @@ interface props {
   app: Application
 }
 
-const convertSizeToReadable = (size ?: bigint) => {
-  if(!size) return '0 B';
+const convertSizeToReadable = (size?: bigint) => {
+  if (!size) return '0 B'
 
-  const i = Math.floor(Math.log(Number(size)) / Math.log(1024));
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  return (Number(size) / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
+  const i = Math.floor(Math.log(Number(size)) / Math.log(1024))
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  return (Number(size) / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i]
 }
 
 export const UpdateApp = ({ isOpen, onClose, reFresh, app }: props) => {
@@ -41,11 +35,15 @@ export const UpdateApp = ({ isOpen, onClose, reFresh, app }: props) => {
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-  useEffect(() =>{
-    // console.log("app : ", app); 
-    setName(app.name);
-    setComment(app.comment);
+  useEffect(() => {
+    // console.log("app : ", app);
+    setName(app.name)
+    setComment(app.comment)
   }, [isOpen])
+
+  useEffect(() => {
+    if (selectedFile) setPreviewUrl(URL.createObjectURL(selectedFile))
+  }, [selectedFile])
 
   // Handle drag events
   const handleDrag = (e: React.DragEvent) => {
@@ -83,7 +81,7 @@ export const UpdateApp = ({ isOpen, onClose, reFresh, app }: props) => {
     if (
       !file.name.endsWith('.png') &&
       !file.name.endsWith('.jpeg') &&
-      !file.name.endsWith('.jpg')&&
+      !file.name.endsWith('.jpg') &&
       !file.name.endsWith('.webp')
     ) {
       setError('Please select a valid PNG file')
@@ -109,13 +107,11 @@ export const UpdateApp = ({ isOpen, onClose, reFresh, app }: props) => {
     setError('')
 
     const formData = new FormData()
-    if (selectedFile) {
-      formData.append('icon', selectedFile)
-      setPreviewUrl(URL.createObjectURL(selectedFile))
-    }
+
     formData.append('name', name)
     formData.append('comment', comment || '')
     formData.append('userId', id)
+    if (selectedFile) formData.append('icon', selectedFile)
 
     console.log(formData)
 
@@ -343,7 +339,12 @@ export const UpdateApp = ({ isOpen, onClose, reFresh, app }: props) => {
                 </button>
                 <button
                   type="submit"
-                  disabled={name == app.name && comment == app.comment && !selectedFile || isUploading}
+                  disabled={
+                    (name == app.name &&
+                      comment == app.comment &&
+                      !selectedFile) ||
+                    isUploading
+                  }
                   className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
                 >
                   {isUploading ? (

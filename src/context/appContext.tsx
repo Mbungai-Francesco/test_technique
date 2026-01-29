@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState  } from 'react'
 import type { ReactNode } from 'react'
 import type { User } from '@/types'
+import { getProfile } from '@/api/auth'
 
 interface AppContextProps {
   user: User
@@ -30,6 +31,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if(user.id !== '') setId(user.id);
+    else 
+      getProfile().then((profile) => {
+        if (profile) {
+          setUser(profile);
+          setId(profile.id);
+        }
+      }   
+    )
   }, [user.id])
 
   return (

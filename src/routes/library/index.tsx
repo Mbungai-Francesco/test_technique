@@ -13,17 +13,17 @@ import { UpdateApp } from '@/components/popups/UpdateApp'
 
 export const Route = createFileRoute('/library/')({
   beforeLoad: async () => {
-    // try {
-    //   const user = await getProfile()
-    //   console.log(user)
-    //   if (user == null) {
-    //     console.log("it 'worked'")
-    //     return redirect({ to: '/login' })
-    //   }
-    // } catch (e) {
-    //   console.log('it failed')
-    //   return redirect({ to: '/login' })
-    // }
+    try {
+      const user = await getProfile()
+      console.log(user)
+      if (user == null) {
+        console.log("it 'worked'")
+        return redirect({ to: '/login' })
+      }
+    } catch (e) {
+      console.log('it failed')
+      return redirect({ to: '/login' })
+    }
   },
   component: RouteComponent,
 })
@@ -33,6 +33,8 @@ function RouteComponent() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
   const [updateOpen, setUpdateOpen] = useState(false)
   const [appli, setAppli] = useState<Application | null>(null)
+
+  const [searchTerm, setSearchTerm] = useState('')
 
   const {
     isFetched,
@@ -46,6 +48,11 @@ function RouteComponent() {
     },
   })
 
+  const nameFilter = ( apps : Array<Application> | null, name : string) => {
+    if(apps == null) return [];
+    return apps.filter( (app) => app.name.toLowerCase().includes(name.toLowerCase()));
+  }
+
   return (
     <div className="p-4">
       {/* Top section */}
@@ -58,6 +65,8 @@ function RouteComponent() {
           <Input
             placeholder="Search"
             className="py-5 z-0 flex w-full border-0 outline-none focus:ring-0 active:outline-0 active:ring-0 focus:outline-none"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <button
@@ -73,8 +82,8 @@ function RouteComponent() {
       <div className="grid grid-cols-3 gap-3">
         {isFetched &&
           res &&
-          res.map((app) => {
-            return <ApplicationBlock key={app.id} app={app} chosen={() => {setAppli(app); setUpdateOpen(true)}} />
+          nameFilter(res, searchTerm).map((app) => {
+            return <ApplicationBlock key={app.id} app={app} chosen={() => {setAppli(app); setUpdateOpen(true)}}  reFresh={refetch}/>
           })}
       </div>
 

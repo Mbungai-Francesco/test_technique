@@ -13,7 +13,6 @@ import { useMutation } from '@tanstack/react-query'
 import { useAppContext } from '@/hooks/useAppContext'
 import { loadToast } from '@/lib/loadToast'
 import { createApp } from '@/api/application'
-import { set } from 'zod'
 
 interface props {
   isOpen: boolean
