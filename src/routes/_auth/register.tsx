@@ -78,10 +78,12 @@ function RouteComponent() {
         toast.dismiss()
         setUser(data.user)
         navigate({ to: '/library' })
-      } else loadToast('Warning', 'Wrong credentials', 3000, 'red')
+      } else {
+        loadToast('Warning', 'Wrong credentials', 3000, 'red')
+      }
     },
     onError: (error) => {
-      loadToast('Warning', 'Wrong credentials', 3000, 'red')
+      loadToast('Warning', 'Email already Exists', 3000, 'red')
       console.error('Error logging in:', error)
     },
   })

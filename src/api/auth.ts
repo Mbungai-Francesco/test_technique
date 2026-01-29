@@ -9,8 +9,11 @@ export const register = async (registerDto: RegisterDto) => {
     const res = await api.post(`${link}/${route}/register`, registerDto);
     console.log("message", res.statusText);
     return res.data as AuthResponse;
-  } catch (error) {
+  } catch (error : any) {
     console.error('Error:', error);
+    if(String(error).includes("409")){
+      throw new Error("User already exists");
+    }
     return null;
   }
 }
