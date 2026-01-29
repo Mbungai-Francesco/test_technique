@@ -95,7 +95,7 @@ export class VirusTotalApiService {
 
       const scanResult = data.positives > 0 ? VirusCheckStatus.VIRUS : VirusCheckStatus.SAFE;
 
-    this.logger.debug(`VirusTotal report data: ${JSON.stringify(data)}`);
+    // this.logger.debug(`VirusTotal report data: ${JSON.stringify(data)}`);
 
       return {
         scanResult,

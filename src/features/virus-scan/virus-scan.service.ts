@@ -108,6 +108,9 @@ export class VirusScanService {
     if (report != null) {
       await this.applicationService.update(application.id, {
         scanResult: report.scanResult,
+        virusCheckStatus: AppState.SCANNED,
+        permalink: report.permalink,
+        lastChecked: new Date(),
       });
 
 

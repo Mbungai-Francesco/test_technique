@@ -5,18 +5,10 @@ export class CreateApplicationDto {
     @IsString()
     @IsNotEmpty()
     userId: string;
-    
-    @IsString()
-    @IsNotEmpty()
-    hash: string;
 
     @IsString()
     @IsNotEmpty()
     filename: string;
-
-    @IsString()
-    @IsNotEmpty()
-    filePath: string;
 
     @IsNotEmpty()
     fileData: Buffer;
@@ -25,7 +17,7 @@ export class CreateApplicationDto {
     icon?: Buffer;
 
     @IsNotEmpty()
-    fileSize: bigint;
+    fileSize: string;
 
     @IsString()
     @IsNotEmpty()
