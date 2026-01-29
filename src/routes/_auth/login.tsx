@@ -1,4 +1,6 @@
-import { Link, createFileRoute, redirect } from '@tanstack/react-router'
+import { useMutation } from '@tanstack/react-query'
+import { useState } from 'react'
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   AlertCircle,
@@ -9,10 +11,10 @@ import {
   Mail,
   Shield,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
-import { z } from 'zod'
+import { set, z } from 'zod'
 import type { LoginDto } from '@/types'
-import { useMutation } from '@tanstack/react-query'
 import { loadToast } from '@/lib/loadToast'
 import { login } from '@/api/auth'
 import {
@@ -21,9 +23,10 @@ import {
   FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { useState } from 'react'
+import { useAppContext } from '@/hooks/useAppContext'
 
 const formSchema = z.object({
   email: z.email('Invalid email address').min(1, 'Email is required'),
@@ -35,7 +38,9 @@ export const Route = createFileRoute('/_auth/login')({
 })
 
 function RouteComponent() {
+  const { setUser } = useAppContext()
   const [open, setOpen] = useState(false)
+  const navigate = useNavigate();
 
   // 1. Define your form.
   const form = useForm<z.infer<typeof formSchema>>({
@@ -55,7 +60,6 @@ function RouteComponent() {
     }
     console.log(val)
     mutate(val);
-    // if (compareValues(val, missionData)) mutate(val);
   }
 
   const { mutate } = useMutation({
@@ -65,7 +69,9 @@ function RouteComponent() {
     },
     onSuccess: (data) => {
       if (data !== null) {
-        redirect({ to: '/library' })
+        toast.dismiss()
+        setUser(data.user);
+        navigate({ to : '/library'})
       } else loadToast('Warning', 'Wrong credentials', 3000, 'red')
     },
     onError: (error) => {
@@ -102,12 +108,6 @@ function RouteComponent() {
               onSubmit={form.handleSubmit(onSubmit)}
               className="mt-8 space-y-6"
             >
-              {/* Error Message (hidden by default) */}
-              <div className="hidden flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                <p className="text-sm text-red-800">Error message here</p>
-              </div>
-
               <div className="space-y-4">
                 {/* Email Field */}
                 <FormField
@@ -118,12 +118,13 @@ function RouteComponent() {
                       <FormLabel>Email address</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="Email address"
+                          placeholder="you@example.com"
                           {...field}
                           className="py-5"
                           type="email"
                         />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -152,6 +153,7 @@ function RouteComponent() {
                           </div>
                         </div>
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />

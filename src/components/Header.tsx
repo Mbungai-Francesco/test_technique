@@ -1,10 +1,28 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 
 import { useState } from 'react'
-import { Home, Layers, Menu, X } from 'lucide-react'
+import { Home, Layers, LogOut, Menu, X } from 'lucide-react'
+import { logout } from '@/api/auth'
+import { useAppContext } from '@/hooks/useAppContext'
 
 export default function Header() {
+  const { id } = useAppContext()
   const [isOpen, setIsOpen] = useState(false)
+  const navigate = useNavigate()
+
+  const leave = () => {
+    logout()
+      .then((mesg) => {
+        console.log(mesg)
+      })
+      .catch((err) => {
+        console.error('Logout error:', err)
+      })
+      .finally(() => {
+        setIsOpen(false)
+        navigate({ to: '/login' })
+      })
+  }
 
   return (
     <>
@@ -39,32 +57,57 @@ export default function Header() {
           </button>
         </div>
 
-        <nav className="flex-1 p-4 overflow-y-auto">
-          <Link
-            to="/"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-            activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-blue-600 hover:bg-cyan-700 transition-colors mb-2',
-            }}
-          >
-            <Home size={20} />
-            <span className="font-medium">Home</span>
-          </Link>
-          
-          <Link
-            to="/library"
-            onClick={() => setIsOpen(false)}
-            className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
-            activeProps={{
-              className:
-                'flex items-center gap-3 p-3 rounded-lg bg-blue-600 hover:bg-cyan-700 transition-colors mb-2',
-            }}
-          >
-            <Layers size={20} />
-            <span className="font-medium">Library</span>
-          </Link>
+        <nav className="flex-1 p-4 overflow-y-auto flex flex-col justify-between">
+          <div>
+            <Link
+              to="/"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
+              activeProps={{
+                className:
+                  'flex items-center gap-3 p-3 rounded-lg bg-blue-600 hover:bg-blue-800 transition-colors mb-2',
+              }}
+            >
+              <Home size={20} />
+              <span className="font-medium">Home</span>
+            </Link>
+
+            <Link
+              to="/library"
+              onClick={() => setIsOpen(false)}
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
+              activeProps={{
+                className:
+                  'flex items-center gap-3 p-3 rounded-lg bg-blue-600 hover:bg-blue-800 transition-colors mb-2',
+              }}
+            >
+              <Layers size={20} />
+              <span className="font-medium">Library</span>
+            </Link>
+          </div>
+
+          {
+            (id === '' ? (
+              <button
+                onClick={() => {
+                  navigate({ to: '/login' })
+                  setIsOpen(false)
+                }}
+                className="flex items-center gap-3 p-3 rounded-lg bg-blue-600 hover:bg-blue-800 transition-colors mb-2"
+              >
+                <LogOut size={20} />
+                <span className="font-medium">Login</span>
+              </button>
+            ) : (
+              <button
+                onClick={leave}
+                className="flex items-center gap-3 p-3 rounded-lg bg-blue-600 hover:bg-blue-800 transition-colors mb-2"
+              >
+                <LogOut size={20} />
+                <span className="font-medium">Logout</span>
+              </button>
+            ))
+          }
 
           {/* Demo Links Start */}
 
@@ -74,7 +117,7 @@ export default function Header() {
             className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-800 transition-colors mb-2"
             activeProps={{
               className:
-                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-cyan-700 transition-colors mb-2',
+                'flex items-center gap-3 p-3 rounded-lg bg-cyan-600 hover:bg-blue-800 transition-colors mb-2',
             }}
           >
             <Network size={20} />

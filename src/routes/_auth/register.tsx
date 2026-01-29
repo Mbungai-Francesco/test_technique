@@ -1,18 +1,115 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
-import { AlertCircle, Loader2, Lock, Mail, Shield, User } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query'
+import { useState } from 'react'
+import { Link, createFileRoute, useNavigate } from '@tanstack/react-router'
+import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  AlertCircle,
+  Eye,
+  EyeOff,
+  Loader2,
+  Lock,
+  Mail,
+  Shield,
+  User,
+} from 'lucide-react'
+import { toast } from 'sonner'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import type { LoginDto, RegisterDto } from '@/types'
+import { loadToast } from '@/lib/loadToast'
+import { login, register } from '@/api/auth'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { useAppContext } from '@/hooks/useAppContext'
+
+const formSchema = z.object({
+  lastName: z.string().min(2, 'Last name is required'),
+  firstName: z.string().optional(),
+  email: z.email('Invalid email address').min(5, 'Email is required'),
+  password: z.string().min(4, 'Password is required'),
+})
 
 export const Route = createFileRoute('/_auth/register')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
+  const { setUser } = useAppContext()
+  const [open, setOpen] = useState(false)
+  const [open2, setOpen2] = useState(false)
+  const navigate = useNavigate()
+
+  // 1. Define your form.
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      lastName: '',
+      firstName: '',
+      email: '',
+      password: '',
+    },
+  })
+
+  function onSubmit(values: z.infer<typeof formSchema>) {
+    // Do something with the form values.
+    // ✅ This will be type-safe and validated.
+
+    const val: RegisterDto = {
+      ...values,
+    }
+    console.log(val)
+    mutate(val);
+  }
+
+  const { mutate } = useMutation({
+    mutationFn: (val: RegisterDto) => {
+      loadToast('Creating account', '', 0, 'blue')
+      return register(val)
+    },
+    onSuccess: (data) => {
+      if (data !== null) {
+        toast.dismiss()
+        setUser(data.user)
+        navigate({ to: '/library' })
+      } else loadToast('Warning', 'Wrong credentials', 3000, 'red')
+    },
+    onError: (error) => {
+      loadToast('Warning', 'Wrong credentials', 3000, 'red')
+      console.error('Error logging in:', error)
+    },
+  })
+
+  const handlePasswordVisibility = () => {
+    setOpen(!open)
+  }
+
+  const handleComfirmPasswordVisibility = () => {
+    setOpen2(!open2)
+  }
+
+  // const handlePasswords = (password: string, confirmPassword: string) => {
+  //   if (password !== confirmPassword) {
+  //     setSamePasswords(false);
+  //     return false
+  //   }
+  //   setSamePasswords(true);
+  //   return true
+  // }
+
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Form */}
       <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-white">
         <div className="w-full max-w-md space-y-8">
           {/* Logo & Title */}
-          <div className="text-center">
+          <div className="flex flex-col text-center">
             <div className="flex justify-center mb-4">
               <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center">
                 <Shield className="w-10 h-10 text-white" />
@@ -24,162 +121,152 @@ function RouteComponent() {
             <p className="mt-2 text-gray-600">
               Start securing your Android apps today
             </p>
+            <p className='text-gray-600'><span className="red-star">*</span> indicates required fields</p>
           </div>
 
           {/* Form */}
-          <form className="mt-8 space-y-6">
-            {/* Error Message (hidden by default) */}
-            <div className="hidden flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-              <p className="text-sm text-red-800">Error message here</p>
-            </div>
-
-            <div className="space-y-4">
-              {/* Username Field */}
-              <div>
-                <label 
-                  htmlFor="username" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Username
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    required
-                    minLength={3}
-                    maxLength={20}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="johndoe"
-                  />
-                </div>
-              </div>
-
-              {/* Email Field */}
-              <div>
-                <label 
-                  htmlFor="email" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Email address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="you@example.com"
-                  />
-                </div>
-              </div>
-
-              {/* Password Field */}
-              <div>
-                <label 
-                  htmlFor="password" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    minLength={8}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="••••••••"
-                  />
-                </div>
-                <p className="mt-1 text-xs text-gray-500">
-                  Min 8 characters with uppercase, lowercase and number
-                </p>
-              </div>
-
-              {/* Confirm Password Field */}
-              <div>
-                <label 
-                  htmlFor="confirmPassword" 
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Confirm Password
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-                    placeholder="••••••••"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Terms */}
-            {/* <div className="flex items-start">
-              <input
-                id="terms"
-                name="terms"
-                type="checkbox"
-                required
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
-              />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
-                I agree to the{' '}
-                <a href="#" className="text-blue-600 hover:text-blue-500">
-                  Terms of Service
-                </a>{' '}
-                and{' '}
-                <a href="#" className="text-blue-600 hover:text-blue-500">
-                  Privacy Policy
-                </a>
-              </label>
-            </div> */}
-
-            {/* Submit Button */}
-            <button
-              type="submit"
-              className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors font-medium"
+          <Form {...form}>
+            <form 
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="mt-8 space-y-6"
             >
-              Create account
-            </button>
+              <div className="space-y-4">
+                {/* Last Name Field */}
+                <FormField
+                  control={form.control}
+                  name="lastName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Last Name <span className="red-star">*</span></FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Rossi"
+                          {...field}
+                          className="py-5"
+                          type="text"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                /> 
 
-            {/* Loading State (use this instead when loading) */}
-            <button
-              type="submit"
-              disabled
-              className="hidden w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-blue-600 opacity-50 cursor-not-allowed font-medium"
-            >
-              <Loader2 className="w-5 h-5 animate-spin" />
-              Creating account...
-            </button>
-          </form>
+                {/* First Name Field */}
+                <FormField
+                  control={form.control}
+                  name="firstName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>First Name</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Francesco"
+                          {...field}
+                          className="py-5"
+                          type="text"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />        
+
+                {/* Email Field */}
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email address <span className="red-star">*</span></FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="you@example.com"
+                          {...field}
+                          className="py-5"
+                          type="email"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Password Field */}
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password <span className="red-star">*</span></FormLabel>
+                      <FormControl>
+                        <div className="relative flex z-0 items-center">
+                          <Input
+                            placeholder="Password"
+                            {...field}
+                            className="py-5 z-0 flex w-full"
+                            type={open ? "text" : "password"}
+                          />
+                          <div className="absolute right-3 flex items-center gap-1 cursor-pointer text-slate-600 hover:text-slate-900">
+                            {open ? (
+                              <Eye className="float-right" onClick={handlePasswordVisibility} />
+                            ) : (
+                              <EyeOff className="float-right" onClick={handlePasswordVisibility} />
+                            )}
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Confirm Password Field */}
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm password <span className="red-star">*</span></FormLabel>
+                      <FormControl>
+                        <div className="relative flex z-0 items-center">
+                          <Input
+                            placeholder="Confirm password"
+                            {...field}
+                            className="py-5 z-0 flex w-full"
+                            type={open2 ? "text" : "password"}
+                          />
+                          <div className="absolute right-3 flex items-center gap-1 cursor-pointer text-slate-600 hover:text-slate-900">
+                            {open2 ? (
+                              <Eye className="float-right" onClick={handleComfirmPasswordVisibility} />
+                            ) : (
+                              <EyeOff className="float-right" onClick={handleComfirmPasswordVisibility} />
+                            )}
+                          </div>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                      {/* {!samePasswords && <p className='text-red-500 text-sm'>Enter the same password as above</p> } */}
+                      
+                    </FormItem>
+                  )}
+                />
+
+              </div>
+            
+              <button
+                type="submit"
+                className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors font-medium"
+              >
+                Create account
+              </button>
+            </form>
+          </Form>
 
           {/* Sign In Link */}
           <p className="text-center text-sm text-gray-600">
             Already have an account?{' '}
-            <Link 
-              to="/login" 
+            <Link
+              to="/login"
               className="font-medium text-blue-600 hover:text-blue-500"
             >
               Sign in
@@ -188,10 +275,7 @@ function RouteComponent() {
 
           {/* Back to Home */}
           <div className="text-center">
-            <Link 
-              to="/" 
-              className="text-sm text-gray-500 hover:text-gray-700"
-            >
+            <Link to="/" className="text-sm text-gray-500 hover:text-gray-700">
               ← Back to home
             </Link>
           </div>
@@ -202,11 +286,10 @@ function RouteComponent() {
       <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-purple-600 to-blue-600 items-center justify-center p-12">
         <div className="max-w-md text-center text-white space-y-6">
           <Shield className="w-24 h-24 mx-auto opacity-90" />
-          <h2 className="text-4xl font-bold">
-            Join Cesco Security
-          </h2>
+          <h2 className="text-4xl font-bold">Join Cesco Security</h2>
           <p className="text-lg text-purple-100">
-            Get started with the most trusted Android application security platform. Analyze, manage, and secure your apps in minutes.
+            Get started with the most trusted Android application security
+            platform. Analyze, manage, and secure your apps in minutes.
           </p>
           <div className="pt-8 grid grid-cols-2 gap-4 text-left">
             <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
