@@ -1,35 +1,43 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   AlertCircle,
   CheckCircle2,
-  File,
   Loader2,
   Upload,
   X,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useMutation } from '@tanstack/react-query'
+import type { Application } from '@/types'
 import { useAppContext } from '@/hooks/useAppContext'
 import { loadToast } from '@/lib/loadToast'
-import { createApp } from '@/api/application'
+import { updateApp } from '@/api/application'
 
 interface props {
   isOpen: boolean
   onClose: () => void
   reFresh: () => void
+  app: Application
 }
 
-export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
+export const UpdateApp = ({ isOpen, onClose, reFresh, app }: props) => {
   const { id } = useAppContext()
-  const [iconUrl, setIconUrl] = useState<string | null>(null)
 
   const [dragActive, setDragActive] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [name, setName] = useState('')
-  const [comment, setComment] = useState('')
+  const [name, setName] = useState(app.name)
+  const [comment, setComment] = useState(app.comment)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadSuccess, setUploadSuccess] = useState(false)
   const [error, setError] = useState('')
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+  useEffect(() =>{
+    // console.log("app : ", app); 
+    setName(app.name);
+    setComment(app.comment);
+  }, [app])
 
   // Handle drag events
   const handleDrag = (e: React.DragEvent) => {
@@ -64,19 +72,23 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
   // Process file
   const handleFile = (file: File) => {
     // Validate file type
-    if (!file.name.endsWith('.apk')) {
-      setError('Please select a valid APK file')
+    if (
+      !file.name.endsWith('.png') ||
+      !file.name.endsWith('.jpeg') ||
+      !file.name.endsWith('.jpg')
+    ) {
+      setError('Please select a valid PNG file')
       return
     }
 
-    // Validate file size (100MB max)
-    if (file.size > 100 * 1024 * 1024) {
-      setError('File size must be less than 100MB')
+    // Validate file size (10MB max)
+    if (file.size > 10 * 1024 * 1024) {
+      setError('File size must be less than 10MB')
       return
     }
 
     setSelectedFile(file)
-    setName(file.name.replace('.apk', ''))
+    // setName(file.name.replace('.apk', ''))
     setError('')
   }
 
@@ -84,22 +96,17 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!selectedFile) {
-      setError('Please select a file')
-      return
-    }
-
     setIsUploading(true)
     setError('')
 
     const formData = new FormData()
-    formData.append('fileData', selectedFile)
+    if (selectedFile) {
+      formData.append('icon', selectedFile)
+      setPreviewUrl(URL.createObjectURL(selectedFile))
+    }
     formData.append('name', name)
-    formData.append('comment', comment)
+    formData.append('comment', comment || '')
     formData.append('userId', id)
-    formData.append('filename', selectedFile.name)
-    formData.append('fileSize', selectedFile.size.toString())
-    formData.append('mimeType', selectedFile.type)
 
     console.log(formData)
 
@@ -127,8 +134,8 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
 
   const { mutate } = useMutation({
     mutationFn: (val: FormData) => {
-      loadToast('Uploading', '', 0, 'blue')
-      return createApp(val)
+      loadToast('Updating', '', 0, 'blue')
+      return updateApp(app.id, val)
     },
     onSuccess: (data) => {
       if (data !== null) {
@@ -141,11 +148,11 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
 
         setIsUploading(false)
         reFresh()
-      } else loadToast('Warning', 'Upload failed', 3000, 'red')
+      } else loadToast('Warning', 'Update failed', 3000, 'red')
     },
     onError: (err) => {
-      loadToast('Warning', 'Upload failed', 3000, 'red')
-      console.error('Error uploading application:', err)
+      loadToast('Warning', 'Update failed', 3000, 'red')
+      console.error('Error updating application:', err)
     },
   })
 
@@ -166,10 +173,10 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                Upload Application
+                Update Application
               </h2>
               <p className="text-sm text-gray-600 mt-1">
-                Upload an APK file to scan for malware
+                Upload an image to serve as icon
               </p>
             </div>
             <button
@@ -190,7 +197,7 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
                 Upload Successful!
               </h3>
               <p className="text-gray-600">
-                Your application is being scanned...
+                Your application is being updated...
               </p>
             </div>
           )}
@@ -224,14 +231,14 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
                   <>
                     <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-lg font-medium text-gray-700 mb-2">
-                      Drag and drop your APK file here
+                      Drag and drop your icon file here
                     </p>
                     <p className="text-sm text-gray-500 mb-4">
                       or click to browse
                     </p>
                     <input
                       type="file"
-                      accept=".apk"
+                      accept=".png,.jpg,.jpeg,.gif"
                       onChange={handleChange}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
@@ -242,14 +249,22 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
                       Browse Files
                     </button>
                     <p className="text-xs text-gray-500 mt-4">
-                      Maximum file size: 100MB
+                      Maximum file size: 10MB
                     </p>
                   </>
                 ) : (
                   <div className="flex items-center justify-between bg-white rounded-lg p-4">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                        <File className="w-6 h-6 text-green-600" />
+                        {previewUrl ? (
+                          <img
+                            src={previewUrl}
+                            alt="Preview"
+                            className="w-full h-full object-contain"
+                          />
+                        ) : (
+                          <span className="text-xs text-gray-400">No Icon</span>
+                        )}
                       </div>
                       <div className="text-left">
                         <p className="font-medium text-gray-900">
@@ -308,33 +323,6 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
                 />
               </div>
 
-              {/* Info Box */}
-              <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <div className="flex gap-3">
-                  <div className="flex-shrink-0">
-                    <svg
-                      className="w-5 h-5 text-blue-600"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-1">Automatic Scanning</p>
-                    <p>
-                      Your application will be automatically scanned using
-                      VirusTotal's 68+ antivirus engines. This may take a few
-                      minutes.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
               {/* Action Buttons */}
               <div className="flex gap-3 mt-6">
                 <button
@@ -347,18 +335,18 @@ export const UploadApp = ({ isOpen, onClose, reFresh }: props) => {
                 </button>
                 <button
                   type="submit"
-                  disabled={!selectedFile || isUploading}
+                  disabled={name == app.name && comment == app.comment}
                   className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
                 >
                   {isUploading ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      Uploading...
+                      Updating...
                     </>
                   ) : (
                     <>
                       <Upload className="w-5 h-5" />
-                      Upload & Scan
+                      Update
                     </>
                   )}
                 </button>

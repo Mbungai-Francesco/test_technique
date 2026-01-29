@@ -31,8 +31,8 @@ export interface ApplicationCreateDto {
 export interface ApplicationUpdateDto {
   name?: string
   comment?: string
-  icon?: Buffer
-  virusCheckStatus: AppState
+  icon?: File
+  virusCheckStatus ?: AppState
   scanResult?: VirusCheckStatus
   permalink?: string
 }

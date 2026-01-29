@@ -1,8 +1,13 @@
 import { Pencil } from "lucide-react";
 import type { Application } from "@/types"
 
+interface props{
+  app : Application
+  chosen: () => void
+}
+
 const convertBufferToBase64 = (buffer ?: Buffer) => {
-  if(!buffer) return '';
+  if(!buffer) return undefined;
 
   let binary = '';
   const bytes = new Uint8Array(buffer);
@@ -21,26 +26,26 @@ const convertSizeToReadable = (size ?: bigint) => {
   return (Number(size) / Math.pow(1024, i)).toFixed(2) + ' ' + sizes[i];
 }
 
-const ApplicationBlock = (app ?: Application) => {
+const ApplicationBlock = ({ app, chosen }: props) => {
   return (
     <div className="w-full border-2 p-3 rounded-md hover:shadow-md transition-shadow cursor-pointer">
       <div className="flex gap-3 items-center my-4">
-        <img src={convertBufferToBase64(app?.icon)} alt="icon" />
-        <p className="text-xl">Status : <span className="text-green-600">{app?.scanResult}</span></p>
+        <img src={convertBufferToBase64(app.icon) || undefined} alt="icon" />
+        <p className="text-xl">Status : <span className="text-green-600">{app.scanResult}</span></p>
       </div>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-xl">{app?.name}</p>
-          <p className="text-sm text-gray-500">{app?.filename}</p>
+          <p className="text-xl">{app.name}</p>
+          <p className="text-sm text-gray-500">{app.filename}</p>
         </div>
-        <Pencil size={20}/>
+        <Pencil size={20} onClick={chosen}/>
       </div>
       <div className="w-full h-0 border border-b border-black/20 my-3"></div>
 
       <div>
-        <p className="mb-2">Size : {convertSizeToReadable(app?.fileSize)}</p>
+        <p className="mb-2">Size : {convertSizeToReadable(app.fileSize)}</p>
         <p className="p-2 bg-black/10 rounded-md">
-          {(app?.comment) ? (app.comment) : 
+          {(app.comment) ? (app.comment) : 
             <span className="text-gray-500">Add a comment</span>}
         </p>
       </div>

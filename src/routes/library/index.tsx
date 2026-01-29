@@ -2,12 +2,14 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { Search, Upload } from 'lucide-react'
 import { useState } from 'react'
+import type { Application } from '@/types'
 import { useAppContext } from '@/hooks/useAppContext'
 import { getProfile } from '@/api/auth'
 import { getAppsByUser } from '@/api/application'
 import { Input } from '@/components/ui/input'
 import { UploadApp } from '@/components/popups/UploadApp'
 import ApplicationBlock from '@/components/blocks/ApplicationBlock'
+import { UpdateApp } from '@/components/popups/UpdateApp'
 
 export const Route = createFileRoute('/library/')({
   beforeLoad: async () => {
@@ -28,21 +30,30 @@ export const Route = createFileRoute('/library/')({
 
 function RouteComponent() {
   const { id } = useAppContext()
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false)
+  const [updateOpen, setUpdateOpen] = useState(false)
+  const [appli, setAppli] = useState<Application | null>(null)
 
-  const { isFetched, refetch, data: res } = useQuery({
+  const {
+    isFetched,
+    refetch,
+    data: res,
+  } = useQuery({
     queryKey: ['applications'],
-    queryFn: () => { if(id) return getAppsByUser(id); else return null},
+    queryFn: () => {
+      if (id) return getAppsByUser(id)
+      else return null
+    },
   })
 
   return (
     <div className="p-4">
       {/* Top section */}
-      <div className="flex items-center justify-end gap-4"> 
+      <div className="flex items-center justify-end gap-4">
         {/* Search Bar */}
         <div className="relative flex z-0 items-center border rounded-md pl-2">
           <div className="flex items-center gap-1 cursor-pointer text-slate-600 hover:text-slate-900">
-            <Search className=""/>
+            <Search className="" />
           </div>
           <Input
             placeholder="Search"
@@ -59,12 +70,12 @@ function RouteComponent() {
       </div>
 
       {/* Main section */}
-      <div className='grid grid-cols-3 gap-3'>
-        {isFetched && res && (
-          res.map((app) =>{
-            return <ApplicationBlock key={app.id} {...app} />
-          })
-        )}
+      <div className="grid grid-cols-3 gap-3">
+        {isFetched &&
+          res &&
+          res.map((app) => {
+            return <ApplicationBlock key={app.id} app={app} chosen={() => {setAppli(app); setUpdateOpen(true)}} />
+          })}
       </div>
 
       <UploadApp
@@ -72,6 +83,15 @@ function RouteComponent() {
         onClose={() => setIsUploadModalOpen(false)}
         reFresh={refetch}
       />
+
+      {appli && (
+        <UpdateApp
+          isOpen={updateOpen}
+          onClose={() => setUpdateOpen(false)}
+          reFresh={refetch}
+          app={appli}
+        />
+      )}
     </div>
   )
 }
